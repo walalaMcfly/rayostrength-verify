@@ -7,7 +7,7 @@
     <style>
         body { 
             font-family: Arial, sans-serif; 
-            background: linear-gradient(135deg, rgb(219, 208, 51) 0%, #eb994c 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0; 
             padding: 20px; 
             min-height: 100vh;
@@ -53,6 +53,11 @@
             color: #666;
             font-size: 16px;
         }
+        .error {
+            color: #ff4444;
+            font-size: 16px;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
@@ -61,63 +66,67 @@
         <h2>Verificando tu cuenta...</h2>
         
         <div id="loading" class="loading">
-            Procesando verificación...
+            ⌛ Procesando verificación...
         </div>
         
         <div id="success" style="display: none;" class="success">
-            ¡Cuenta verificada exitosamente!
+             ¡Cuenta verificada exitosamente!
         </div>
         
-        <div id="error" style="display: none; color: #ff4444;">
+        <div id="error" style="display: none;" class="error">
              Error en la verificación
         </div>
 
         <div id="action" style="display: none; margin-top: 20px;">
             <p>Ahora puedes cerrar esta página y regresar a la app.</p>
-            <button class="button" onclick="closePage()">Cerrar</button>
+            <button class="button" onclick="closePage()">Cerrar Página</button>
         </div>
     </div>
 
     <script>
-
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
+
         async function verificarCuenta() {
             if (!token) {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('error').innerHTML = 'Token no válido';
-                document.getElementById('action').style.display = 'block';
+                showError('Token no válido');
                 return;
             }
             
             try {
+
                 const response = await fetch(`https://rayostrength-production.up.railway.app/api/auth/verificar?token=${token}`);
                 const data = await response.json();
                 
-                document.getElementById('loading').style.display = 'none';
-                
                 if (response.ok) {
-                    document.getElementById('success').style.display = 'block';
-                    document.getElementById('success').innerHTML = ` ${data.message || '¡Cuenta verificada exitosamente!'}`;
+                    showSuccess(data.message || '¡Cuenta verificada exitosamente!');
                 } else {
-                    document.getElementById('error').style.display = 'block';
-                    document.getElementById('error').innerHTML = ` ${data.message || data.error || 'Error al verificar la cuenta'}`;
+                    showError(data.message || data.error || 'Error al verificar la cuenta');
                 }
                 
-                document.getElementById('action').style.display = 'block';
-                
             } catch (error) {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('error').innerHTML = ' Error de conexión';
-                document.getElementById('action').style.display = 'block';
+                showError('Error de conexión con el servidor: ' + error.message);
             }
+        }
+        
+        function showSuccess(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('success').style.display = 'block';
+            document.getElementById('success').innerHTML = `✅ ${message}`;
+            document.getElementById('action').style.display = 'block';
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').innerHTML = ` ${message}`;
+            document.getElementById('action').style.display = 'block';
         }
         
         function closePage() {
             window.close();
         }
+        
         window.onload = verificarCuenta;
     </script>
 </body>
